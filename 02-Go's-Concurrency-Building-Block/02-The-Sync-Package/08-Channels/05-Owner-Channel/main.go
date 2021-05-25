@@ -25,13 +25,13 @@ func main() {
 
 		// Here we return the resultStream channel. Since the return value is declared as a
 		// read-only channel, resultStream will implicitly be converted to read-only for
-		// customers.
+		// consumer.
 		return resultStream
 	}
 
 	resultStream := ownerChan()
 
-	// Here we range over resultStream. As a customer, we are only concerned with blocking and
+	// Here we range over resultStream. As a consumer, we are only concerned with blocking and
 	// closed channels.
 	for result := range resultStream {
 		fmt.Printf("Received: %d\n", result)
