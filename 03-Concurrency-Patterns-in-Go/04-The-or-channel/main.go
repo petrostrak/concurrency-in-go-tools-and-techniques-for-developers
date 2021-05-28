@@ -13,7 +13,7 @@ func main() {
 
 	// Here we have our function, or, which takes in a variadic slice of channels and
 	// returns a single channel.
-	or := func(channels ...<-chan interface{}) <-chan interface{} {
+	or = func(channels ...<-chan interface{}) <-chan interface{} {
 		switch len(channels) {
 
 		// Since this is a recursive function, we must set up termination criteria. The
