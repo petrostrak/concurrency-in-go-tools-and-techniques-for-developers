@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+)
 
 // As a reminder, a generator for a pipeline is any function that converts a set of
 // discrete values into a stream of values on a channel.
@@ -45,8 +48,30 @@ func main() {
 		return takeStream
 	}
 
+	// This function returns an infinite channel of random integers, generated on an as-needed
+	// basis.
+	repeatFn := func(done <-chan interface{}, fn func() interface{}) <-chan interface{} {
+		valueStream := make(chan interface{})
+		go func() {
+			defer close(valueStream)
+			for {
+				select {
+				case <-done:
+					return
+				case valueStream <- fn():
+				}
+			}
+		}()
+
+		return valueStream
+	}
+
 	done := make(chan interface{})
 	defer close(done)
+
+	random := func() interface{} {
+		return rand.Int()
+	}
 
 	// We created a repeat generator to generate an infinite number of ones, but
 	// then only take the first ten. Because the repeat generator's send blocks on
@@ -55,5 +80,9 @@ func main() {
 	// N+1 instances where N is the number we pass into the take stage.
 	for num := range take(done, repeat(done, 1), 10) {
 		fmt.Printf("%v ", num)
+	}
+
+	for num := range take(done, repeatFn(done, random), 10) {
+		fmt.Println(num)
 	}
 }
