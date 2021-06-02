@@ -16,7 +16,7 @@ func main() {
 				case <-done:
 					return
 				case v, ok := <-c:
-					if ok == false {
+					if !ok {
 						return
 					}
 					select {
