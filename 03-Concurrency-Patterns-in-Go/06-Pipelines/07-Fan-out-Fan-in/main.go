@@ -53,6 +53,7 @@ func main() {
 		}()
 		return intStream
 	}
+
 	primeFinder := func(done <-chan interface{}, intStream <-chan int) <-chan interface{} {
 		primeStream := make(chan interface{})
 		go func() {
@@ -79,10 +80,17 @@ func main() {
 		return primeStream
 	}
 
+	// Here we take in our standard done channel to allow our goroutines to be torn down, and
+	// then a variadic slice of interface{} channels to fan-in.
 	fanIn := func(done <-chan interface{}, channels ...<-chan interface{}) <-chan interface{} {
+
+		// On this line we create a sync.WaitGroup so that we can wait until all channels have been
+		// drained.
 		var wg sync.WaitGroup
 		multiplexedStream := make(chan interface{})
 
+		// Here we create a function, multiplex, which, when passed a channel, will read from the channel
+		// and pass the value read onto the multiplexedStream channel.
 		multiplex := func(c <-chan interface{}) {
 			defer wg.Done()
 			for i := range c {
@@ -95,12 +103,15 @@ func main() {
 		}
 
 		// Select from all the channels
+		// This line increments the sync.WaitGroup by the number of channels we're multiplexing.
 		wg.Add(len(channels))
 		for _, c := range channels {
 			go multiplex(c)
 		}
 
 		// Wait for all the reads to complete
+		// Here we create a goroutine to wait for all the channels we're multiplexing to be drained so
+		// that we can close the multiplexedStream channel.
 		go func() {
 			wg.Wait()
 			close(multiplexedStream)
