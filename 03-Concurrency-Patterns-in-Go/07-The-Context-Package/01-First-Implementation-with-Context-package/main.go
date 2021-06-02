@@ -85,6 +85,15 @@ func genFarewell(ctx context.Context) (string, error) {
 }
 
 func locale(ctx context.Context) (string, error) {
+
+	// Here we check to see whether our Context has provided a deadline. If it did,
+	// and our system's clock has advanced past the deadline, we simply return with
+	// a special error defined in the context package, DeadlineExceeded.
+	if deadline, ok := ctx.Deadline(); ok {
+		if deadline.Sub(time.Now().Add(1*time.Minute)) <= 0 {
+			return "", context.DeadlineExceeded
+		}
+	}
 	select {
 	case <-ctx.Done():
 
