@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// This naive implementation of the fan out, fan in algorithm only works if the order in which results arrive is
+// unimportant.
 func main() {
 	repeatFn := func(done <-chan interface{}, fn func() interface{}) <-chan interface{} {
 		valueStream := make(chan interface{})
@@ -80,6 +82,8 @@ func main() {
 		return primeStream
 	}
 
+	// Fanning in means multiplexing of joining together multiple streams of data into a single stream.
+	//
 	// Here we take in our standard done channel to allow our goroutines to be torn down, and
 	// then a variadic slice of interface{} channels to fan-in.
 	fanIn := func(done <-chan interface{}, channels ...<-chan interface{}) <-chan interface{} {
@@ -129,6 +133,9 @@ func main() {
 
 	randIntStream := toInt(done, repeatFn(done, rand))
 
+	// The process of fanning out a stage in a pipeline is exraordinarily easy. All we have to do
+	// is to start multiple versions of that stage.
+	// Here we're starting up as many copies of this stage as we have CPUs.
 	numFinders := runtime.NumCPU()
 	fmt.Printf("Spinning up %d prime finders.\n", numFinders)
 	finders := make([]<-chan interface{}, numFinders)
